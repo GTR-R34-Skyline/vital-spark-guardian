@@ -141,6 +141,43 @@ function EdaPage() {
       .slice(-50);
   }, [vitals]);
 
+  const perPatient = useMemo(() => {
+    const grouped = new Map<string, Vital[]>();
+    for (const v of vitals) {
+      if (!grouped.has(v.patient_id)) grouped.set(v.patient_id, []);
+      grouped.get(v.patient_id)!.push(v);
+    }
+    const avg = (a: number[]) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0);
+    return patients.map((p) => {
+      const rows = grouped.get(p.id) ?? [];
+      const hr = rows.map((r) => Number(r.smoothed_hr));
+      const spo2 = rows.map((r) => Number(r.smoothed_spo2));
+      const temp = rows.map((r) => Number(r.smoothed_temp));
+      const trend = (() => {
+        if (hr.length < 6) return "stable";
+        const half = Math.floor(hr.length / 2);
+        const d = avg(hr.slice(half)) - avg(hr.slice(0, half));
+        if (d > 1.2) return "increasing";
+        if (d < -1.2) return "decreasing";
+        return "stable";
+      })();
+      return {
+        id: p.id,
+        label: p.display_label,
+        hrAvg: avg(hr),
+        hrMin: hr.length ? Math.min(...hr) : 0,
+        hrMax: hr.length ? Math.max(...hr) : 0,
+        spo2Avg: avg(spo2),
+        spo2Min: spo2.length ? Math.min(...spo2) : 0,
+        spo2Max: spo2.length ? Math.max(...spo2) : 0,
+        tempAvg: avg(temp),
+        tempMin: temp.length ? Math.min(...temp) : 0,
+        tempMax: temp.length ? Math.max(...temp) : 0,
+        trend,
+      };
+    });
+  }, [patients, vitals]);
+
   const corrMatrix = [
     ["", "HR", "SpO₂", "Temp"],
     ["HR", "1.00", stats.corr.hr_spo2.toFixed(2), stats.corr.hr_temp.toFixed(2)],
@@ -321,6 +358,25 @@ function EdaPage() {
             · {(stats.anomalyRate * 100).toFixed(1)}% of readings flagged anomalous by edge filter +
             ML score.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Per-patient moving insights</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {perPatient.map((p) => (
+            <div key={p.id} className="rounded-md border bg-muted/20 p-3">
+              <div className="font-medium">{p.label}</div>
+              <div className="text-muted-foreground">
+                HR avg/min/max: {p.hrAvg.toFixed(1)} / {p.hrMin.toFixed(1)} / {p.hrMax.toFixed(1)} · SpO₂
+                avg/min/max: {p.spo2Avg.toFixed(1)} / {p.spo2Min.toFixed(1)} / {p.spo2Max.toFixed(1)} · Temp
+                avg/min/max: {p.tempAvg.toFixed(2)} / {p.tempMin.toFixed(2)} / {p.tempMax.toFixed(2)} · Trend:{" "}
+                {p.trend}
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>
