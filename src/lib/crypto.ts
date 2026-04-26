@@ -10,7 +10,9 @@ const APP_PEPPER = "lovable-healthcare-monitor-v1";
 export async function sha256(input: string): Promise<string> {
   const enc = new TextEncoder().encode(input);
   const buf = await crypto.subtle.digest("SHA-256", enc);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 async function getKey(): Promise<CryptoKey> {
@@ -19,11 +21,13 @@ async function getKey(): Promise<CryptoKey> {
 }
 
 function b64encode(bytes: Uint8Array): string {
-  let s = ""; for (const b of bytes) s += String.fromCharCode(b);
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
   return btoa(s);
 }
 function b64decode(str: string): Uint8Array {
-  const s = atob(str); const out = new Uint8Array(s.length);
+  const s = atob(str);
+  const out = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
   return out;
 }
@@ -34,7 +38,8 @@ export async function aesEncrypt(plaintext: string): Promise<string> {
   const data = new TextEncoder().encode(plaintext);
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data));
   const combined = new Uint8Array(iv.length + ct.length);
-  combined.set(iv); combined.set(ct, iv.length);
+  combined.set(iv);
+  combined.set(ct, iv.length);
   return b64encode(combined);
 }
 

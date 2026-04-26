@@ -27,29 +27,44 @@ function AuthPage() {
   }, [nav]);
 
   async function signIn(e: React.FormEvent) {
-    e.preventDefault(); setLoading(true);
+    e.preventDefault();
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) toast.error(error.message);
-    else { toast.success("Signed in"); nav({ to: "/dashboard" }); }
+    else {
+      toast.success("Signed in");
+      nav({ to: "/dashboard" });
+    }
   }
 
   async function signUp(e: React.FormEvent) {
-    e.preventDefault(); setLoading(true);
+    e.preventDefault();
+    setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email, password,
+      email,
+      password,
       options: { emailRedirectTo: `${window.location.origin}/dashboard` },
     });
     setLoading(false);
     if (error) toast.error(error.message);
-    else { toast.success("Account created — signing in…"); nav({ to: "/dashboard" }); }
+    else {
+      toast.success("Account created — signing in…");
+      nav({ to: "/dashboard" });
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--gradient-hero)" }}>
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "var(--gradient-hero)" }}
+    >
       <Card className="w-full max-w-md" style={{ boxShadow: "var(--shadow-elegant)" }}>
         <CardHeader className="text-center">
-          <div className="mx-auto size-12 rounded-xl flex items-center justify-center mb-2" style={{ background: "var(--gradient-primary)" }}>
+          <div
+            className="mx-auto size-12 rounded-xl flex items-center justify-center mb-2"
+            style={{ background: "var(--gradient-primary)" }}
+          >
             <Activity className="size-6 text-primary-foreground" />
           </div>
           <CardTitle>Welcome to VitalSync</CardTitle>
@@ -63,16 +78,53 @@ function AuthPage() {
             </TabsList>
             <TabsContent value="signin">
               <form onSubmit={signIn} className="space-y-3">
-                <div><Label>Email</Label><Input type="email" required value={email} onChange={e => setEmail(e.target.value)} /></div>
-                <div><Label>Password</Label><Input type="password" required value={password} onChange={e => setPassword(e.target.value)} /></div>
-                <Button type="submit" className="w-full" disabled={loading}>{loading ? "…" : "Sign in"}</Button>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Password</Label>
+                  <Input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "…" : "Sign in"}
+                </Button>
               </form>
             </TabsContent>
             <TabsContent value="signup">
               <form onSubmit={signUp} className="space-y-3">
-                <div><Label>Email</Label><Input type="email" required value={email} onChange={e => setEmail(e.target.value)} /></div>
-                <div><Label>Password</Label><Input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} /></div>
-                <Button type="submit" className="w-full" disabled={loading}>{loading ? "…" : "Create account"}</Button>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Password</Label>
+                  <Input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "…" : "Create account"}
+                </Button>
               </form>
             </TabsContent>
           </Tabs>

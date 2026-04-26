@@ -22,13 +22,19 @@ export interface RuleAST {
 }
 
 export class ParseError extends Error {
-  constructor(message: string, public pos: number) { super(message); }
+  constructor(
+    message: string,
+    public pos: number,
+  ) {
+    super(message);
+  }
 }
 
 export function parseRule(src: string): RuleAST {
   let tokens: Token[];
-  try { tokens = tokenize(src); }
-  catch (e) {
+  try {
+    tokens = tokenize(src);
+  } catch (e) {
     if (e instanceof LexerError) throw new ParseError(e.message, e.pos);
     throw e;
   }
@@ -37,7 +43,8 @@ export function parseRule(src: string): RuleAST {
   const peek = () => tokens[i];
   const eat = (type: string) => {
     const t = tokens[i];
-    if (t.type !== type) throw new ParseError(`Expected ${type} but got '${t.value || t.type}'`, t.pos);
+    if (t.type !== type)
+      throw new ParseError(`Expected ${type} but got '${t.value || t.type}'`, t.pos);
     i++;
     return t;
   };
@@ -46,7 +53,12 @@ export function parseRule(src: string): RuleAST {
     const id = eat("IDENT");
     const op = eat("OP");
     const num = eat("NUMBER");
-    return { type: "comparison", field: id.value, op: op.value as Comparison["op"], value: parseFloat(num.value) };
+    return {
+      type: "comparison",
+      field: id.value,
+      op: op.value as Comparison["op"],
+      value: parseFloat(num.value),
+    };
   };
 
   const parseTerm = (): Expr => {
@@ -79,7 +91,9 @@ export function parseRule(src: string): RuleAST {
   return { condition, level: lvl.value as RuleAST["level"] };
 }
 
-export function validate(src: string): { ok: true; ast: RuleAST } | { ok: false; error: string; pos: number } {
+export function validate(
+  src: string,
+): { ok: true; ast: RuleAST } | { ok: false; error: string; pos: number } {
   try {
     const ast = parseRule(src);
     return { ok: true, ast };

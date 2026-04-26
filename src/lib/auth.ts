@@ -38,10 +38,12 @@ export function useAuth(): AuthState {
 
   async function fetchRoles(uid: string) {
     const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles((data ?? []).map(r => r.role as AppRole));
+    setRoles((data ?? []).map((r) => r.role as AppRole));
   }
 
   return { user, session, roles, loading };
 }
 
-export function hasRole(roles: AppRole[], r: AppRole) { return roles.includes(r); }
+export function hasRole(roles: AppRole[], r: AppRole) {
+  return roles.includes(r);
+}

@@ -12,9 +12,11 @@ export interface VitalsContext {
 
 export function buildContext(v: { hr: number; spo2: number; temp: number }): VitalsContext {
   return {
-    heart_rate: v.hr, hr: v.hr,
+    heart_rate: v.hr,
+    hr: v.hr,
     spo2: v.spo2,
-    temperature: v.temp, temp: v.temp,
+    temperature: v.temp,
+    temp: v.temp,
   };
 }
 
@@ -23,12 +25,18 @@ export function evalExpr(expr: Expr, ctx: VitalsContext): boolean {
     const lhs = ctx[expr.field.toLowerCase()];
     if (lhs === undefined) return false;
     switch (expr.op) {
-      case ">": return lhs > expr.value;
-      case "<": return lhs < expr.value;
-      case ">=": return lhs >= expr.value;
-      case "<=": return lhs <= expr.value;
-      case "==": return lhs === expr.value;
-      case "!=": return lhs !== expr.value;
+      case ">":
+        return lhs > expr.value;
+      case "<":
+        return lhs < expr.value;
+      case ">=":
+        return lhs >= expr.value;
+      case "<=":
+        return lhs <= expr.value;
+      case "==":
+        return lhs === expr.value;
+      case "!=":
+        return lhs !== expr.value;
     }
   }
   if (expr.op === "AND") return evalExpr(expr.left, ctx) && evalExpr(expr.right, ctx);
