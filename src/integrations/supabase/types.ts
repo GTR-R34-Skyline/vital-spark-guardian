@@ -10,6 +10,7 @@ export type Database = {
     Tables: {
       alerts: {
         Row: {
+          action: string | null;
           acknowledged_at: string | null;
           acknowledged_by: string | null;
           id: string;
@@ -20,6 +21,7 @@ export type Database = {
           ts: string;
         };
         Insert: {
+          action?: string | null;
           acknowledged_at?: string | null;
           acknowledged_by?: string | null;
           id?: string;
@@ -30,6 +32,7 @@ export type Database = {
           ts?: string;
         };
         Update: {
+          action?: string | null;
           acknowledged_at?: string | null;
           acknowledged_by?: string | null;
           id?: string;
@@ -58,34 +61,49 @@ export type Database = {
       };
       patients: {
         Row: {
+          age: number | null;
           baseline_hr: number;
           baseline_spo2: number;
           baseline_temp: number;
           created_at: string;
           display_label: string;
+          discharged_at: string | null;
           encrypted_name: string;
           hashed_external_id: string;
           id: string;
+          is_discharged: boolean;
+          monitoring_status: string;
+          status_since: string;
         };
         Insert: {
+          age?: number | null;
           baseline_hr?: number;
           baseline_spo2?: number;
           baseline_temp?: number;
           created_at?: string;
           display_label: string;
+          discharged_at?: string | null;
           encrypted_name: string;
           hashed_external_id: string;
           id?: string;
+          is_discharged?: boolean;
+          monitoring_status?: string;
+          status_since?: string;
         };
         Update: {
+          age?: number | null;
           baseline_hr?: number;
           baseline_spo2?: number;
           baseline_temp?: number;
           created_at?: string;
           display_label?: string;
+          discharged_at?: string | null;
           encrypted_name?: string;
           hashed_external_id?: string;
           id?: string;
+          is_discharged?: boolean;
+          monitoring_status?: string;
+          status_since?: string;
         };
         Relationships: [];
       };
