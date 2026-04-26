@@ -1,13 +1,18 @@
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
-  vite: {
-    appType: "spa",
-    build: {
-      outDir: "dist/client",
-      rollupOptions: {
-        input: "/index.html"
-      }
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    outDir: "dist/client",
+    rollupOptions: {
+      input: "/index.html"
     }
   }
 });
