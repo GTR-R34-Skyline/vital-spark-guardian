@@ -47,6 +47,7 @@ const CRITICAL_RULE = {
   temp: 40,
 };
 const nowMs = () => Date.now();
+const ALERT_DEDUP_WINDOW_MS = 2 * 60 * 1000;
 
 export type MonitoringStatus =
   | "ACTIVE"
@@ -62,6 +63,21 @@ interface AlertInsert {
   level: "INFO" | "WARNING" | "CRITICAL";
   message: string;
   action?: string;
+}
+
+interface ExistingAlertRow {
+  patient_id: string;
+  level: string;
+  message: string;
+  action: string | null;
+  ts: string;
+  acknowledged_at: string | null;
+}
+
+function alertFingerprint(alert: Pick<AlertInsert, "patient_id" | "level" | "message" | "action">) {
+  // Rule alert messages include live vitals in parentheses; normalize by rule title only.
+  const normalizedMessage = alert.message.split(" (")[0].trim();
+  return `${alert.patient_id}|${alert.level}|${normalizedMessage}|${alert.action ?? ""}`;
 }
 
 interface Reading {
@@ -393,8 +409,38 @@ export async function runSimulationCycle(patients: PatientBaseline[]) {
   }
 
   if (newAlerts.length > 0) {
-    await supabase.from("alerts").insert(newAlerts);
-    alertCount = newAlerts.length;
+    const uniqueByFingerprint = new Map<string, AlertInsert>();
+    for (const alert of newAlerts) {
+      const key = alertFingerprint(alert);
+      if (!uniqueByFingerprint.has(key)) uniqueByFingerprint.set(key, alert);
+    }
+    const dedupedCandidateAlerts = [...uniqueByFingerprint.values()];
+
+    const cutoffIso = new Date(nowMs() - ALERT_DEDUP_WINDOW_MS).toISOString();
+    const { data: existingAlerts } = await supabase
+      .from("alerts")
+      .select("patient_id, level, message, action, ts, acknowledged_at")
+      .is("acknowledged_at", null)
+      .gte("ts", cutoffIso);
+
+    const existingFingerprints = new Set(
+      ((existingAlerts ?? []) as ExistingAlertRow[]).map((alert) =>
+        alertFingerprint({
+          patient_id: alert.patient_id,
+          level: alert.level as AlertInsert["level"],
+          message: alert.message,
+          action: alert.action ?? undefined,
+        }),
+      ),
+    );
+
+    const alertsToInsert = dedupedCandidateAlerts.filter(
+      (alert) => !existingFingerprints.has(alertFingerprint(alert)),
+    );
+    if (alertsToInsert.length > 0) {
+      await supabase.from("alerts").insert(alertsToInsert);
+      alertCount = alertsToInsert.length;
+    }
   }
   return { inserted: readings.length, alerts: alertCount };
 }

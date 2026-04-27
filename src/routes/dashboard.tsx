@@ -125,6 +125,7 @@ function DashboardPage() {
   });
   const [stats, setStats] = useState({ inserted: 0, alerts: 0, cycles: 0 });
   const alertsRef = useRef<HTMLDivElement>(null);
+  const lastAlertToastAtRef = useRef(0);
 
   const refresh = useCallback(async () => {
     const { data: pts } = await supabase.from("patients").select("*").order("display_label");
@@ -213,7 +214,14 @@ function DashboardPage() {
           alerts: s.alerts + res.alerts,
           cycles: s.cycles + 1,
         }));
-        if (res.alerts > 0) toast.warning(`${res.alerts} new alert${res.alerts > 1 ? "s" : ""}`);
+        if (res.alerts > 0) {
+          const now = Date.now();
+          // Prevent popup flooding while still notifying periodically.
+          if (now - lastAlertToastAtRef.current > 15000) {
+            toast.warning(`${res.alerts} new alert${res.alerts > 1 ? "s" : ""}`);
+            lastAlertToastAtRef.current = now;
+          }
+        }
         await refresh();
       } catch (e) {
         console.error(e);
